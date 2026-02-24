@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
 
-from model_utils import predict
+from model_utils import get_attributions, predict
 
 app = Flask(__name__)
 
@@ -16,6 +16,7 @@ def index():
         debug_mode = request.form.get("debug") == "on"
         if input_text:
             result = predict(input_text, debug=debug_mode)
+            result["attributions"] = get_attributions(input_text)
 
     return render_template("index.html", result=result, input_text=input_text, debug_mode=debug_mode)
 

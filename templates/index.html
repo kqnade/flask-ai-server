@@ -166,6 +166,41 @@
         .prob-bar-fill-positive { height: 100%; background: #a6e3a1; border-radius: 3px; }
         .prob-bar-fill-negative { height: 100%; background: #f38ba8; border-radius: 3px; }
         .prob-pct { width: 48px; text-align: right; color: #cdd6f4; }
+        .attribution-section {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb;
+        }
+        .attribution-section h2 {
+            margin-top: 0;
+            margin-bottom: 4px;
+            font-size: 1rem;
+            color: #444;
+        }
+        .attribution-legend {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 12px;
+            font-size: 0.8rem;
+            color: #888;
+        }
+        .legend-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .attribution-text {
+            line-height: 2.4;
+            font-size: 1rem;
+            word-break: break-word;
+        }
+        .attr-word {
+            border-radius: 3px;
+            padding: 2px 3px;
+        }
     </style>
 </head>
 <body>
@@ -198,6 +233,19 @@
             <div class="bar-fill-negative" style="width: {{ result.confidence }}%;"></div>
             {% endif %}
         </div>
+
+        {% if result.attributions %}
+        <div class="attribution-section">
+            <h2>Attribution</h2>
+            <div class="attribution-legend">
+                <span><span class="legend-dot" style="background: rgba(22,163,74,0.6);"></span>Positive 方向</span>
+                <span><span class="legend-dot" style="background: rgba(220,38,38,0.6);"></span>Negative 方向</span>
+            </div>
+            <div class="attribution-text">
+                {% for word in result.attributions %}{% if word.space_before %} {% endif %}{% if word.score > 0 %}<span class="attr-word" style="background: rgba(22,163,74,{{ (word.score * 0.6) | round(2) }});">{{ word.word }}</span>{% elif word.score < 0 %}<span class="attr-word" style="background: rgba(220,38,38,{{ (word.score | abs * 0.6) | round(2) }});">{{ word.word }}</span>{% else %}<span class="attr-word">{{ word.word }}</span>{% endif %}{% endfor %}
+            </div>
+        </div>
+        {% endif %}
 
         {% if result.debug %}
         <div class="debug-box">
