@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# 仮想環境
+.venv/
+venv/
+env/
+
+# モデル・チェックポイント
+*.pt
+*.pth
+*.bin
+*.safetensors
+checkpoints/
+saved_model/
+runs/
+
+# Hugging Face キャッシュ
+.cache/
+
+# データセット
+data/
+datasets/
+
+# ログ
+*.log
+logs/
+
+# 環境変数
+.env
+.env.*
+
+# エディタ
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# mise / pyenv
+.python-version
