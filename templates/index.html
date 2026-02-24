@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>感情分析アプリ</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 640px;
+            margin: 48px auto;
+            padding: 0 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            font-size: 1.6rem;
+            margin-bottom: 4px;
+        }
+        p.subtitle {
+            color: #666;
+            margin-top: 0;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+        }
+        form {
+            background: #fff;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        textarea {
+            width: 100%;
+            height: 110px;
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+        button {
+            margin-top: 12px;
+            padding: 10px 28px;
+            font-size: 1rem;
+            background: #3b82f6;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .result-box {
+            margin-top: 24px;
+            padding: 20px 24px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        .result-box h2 {
+            margin-top: 0;
+            font-size: 1rem;
+            color: #444;
+        }
+        .label-positive {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #16a34a;
+        }
+        .label-negative {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #dc2626;
+        }
+        .confidence {
+            margin-top: 6px;
+            color: #555;
+        }
+        .bar-bg {
+            margin-top: 10px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            height: 10px;
+            overflow: hidden;
+        }
+        .bar-fill-positive {
+            height: 100%;
+            background: #16a34a;
+            border-radius: 4px;
+        }
+        .bar-fill-negative {
+            height: 100%;
+            background: #dc2626;
+            border-radius: 4px;
+        }
+        .debug-toggle {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #555;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .debug-box {
+            margin-top: 16px;
+            padding: 16px 20px;
+            background: #1e1e2e;
+            color: #cdd6f4;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+        .debug-box h3 {
+            margin: 0 0 12px 0;
+            font-size: 0.85rem;
+            color: #89b4fa;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .debug-section {
+            margin-bottom: 14px;
+        }
+        .debug-label {
+            color: #a6e3a1;
+            margin-bottom: 4px;
+        }
+        .debug-value {
+            color: #f5c2e7;
+        }
+        .token-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .token-chip {
+            background: #313244;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-size: 0.8rem;
+        }
+        .prob-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 6px;
+        }
+        .prob-name {
+            width: 80px;
+            color: #cba6f7;
+        }
+        .prob-bar-bg {
+            flex: 1;
+            background: #313244;
+            border-radius: 3px;
+            height: 8px;
+            overflow: hidden;
+        }
+        .prob-bar-fill-positive { height: 100%; background: #a6e3a1; border-radius: 3px; }
+        .prob-bar-fill-negative { height: 100%; background: #f38ba8; border-radius: 3px; }
+        .prob-pct { width: 48px; text-align: right; color: #cdd6f4; }
+    </style>
+</head>
+<body>
+    <h1>感情分析アプリ</h1>
+    <p class="subtitle">英語テキストを入力すると、ポジティブ / ネガティブを判定します。</p>
+
+    <form method="POST">
+        <label for="text">テキストを入力してください:</label>
+        <textarea id="text" name="text" placeholder="例: This movie was absolutely fantastic!">{{ input_text }}</textarea>
+        <button type="submit">分析する</button>
+        <label class="debug-toggle">
+            <input type="checkbox" name="debug" {% if debug_mode %}checked{% endif %}>
+            デバッグモード
+        </label>
+    </form>
+
+    {% if result %}
+    <div class="result-box">
+        <h2>分析結果</h2>
+        {% if result.label == "positive" %}
+        <div class="label-positive">Positive（ポジティブ）</div>
+        {% else %}
+        <div class="label-negative">Negative（ネガティブ）</div>
+        {% endif %}
+        <div class="confidence">信頼度: {{ result.confidence }}%</div>
+        <div class="bar-bg">
+            {% if result.label == "positive" %}
+            <div class="bar-fill-positive" style="width: {{ result.confidence }}%;"></div>
+            {% else %}
+            <div class="bar-fill-negative" style="width: {{ result.confidence }}%;"></div>
+            {% endif %}
+        </div>
+
+        {% if result.debug %}
+        <div class="debug-box">
+            <h3>Debug Info</h3>
+
+            <div class="debug-section">
+                <div class="debug-label">Device</div>
+                <div class="debug-value">{{ result.debug.device }}</div>
+            </div>
+
+            <div class="debug-section">
+                <div class="debug-label">Tokens ({{ result.debug.token_count }})</div>
+                <div class="token-list">
+                    {% for t in result.debug.tokens %}
+                    <span class="token-chip">{{ t }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="debug-section">
+                <div class="debug-label">Logits (raw)</div>
+                {% for name, val in result.debug.logits.items() %}
+                <div><span class="prob-name">{{ name }}</span><span class="debug-value">{{ val }}</span></div>
+                {% endfor %}
+            </div>
+
+            <div class="debug-section">
+                <div class="debug-label">Probabilities (softmax)</div>
+                {% for name, pct in result.debug.probs_all.items() %}
+                <div class="prob-row">
+                    <span class="prob-name">{{ name }}</span>
+                    <div class="prob-bar-bg">
+                        {% if name == "positive" %}
+                        <div class="prob-bar-fill-positive" style="width: {{ pct }}%;"></div>
+                        {% else %}
+                        <div class="prob-bar-fill-negative" style="width: {{ pct }}%;"></div>
+                        {% endif %}
+                    </div>
+                    <span class="prob-pct">{{ pct }}%</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</body>
+</html>
